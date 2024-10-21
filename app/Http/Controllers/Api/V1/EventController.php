@@ -11,6 +11,10 @@ use Illuminate\Support\Facades\Lang;
  * Class EventController
  *
  * This controller handles API requests for the Event resource.
+ * It provides CRUD operations for events and additional functionality
+ * such as retrieving events by category.
+ *
+ * @package App\Http\Controllers\Api\V1
  */
 class EventController extends Controller
 {
@@ -22,7 +26,9 @@ class EventController extends Controller
     public function index()
     {
         try {
-            $events = Event::all();
+            // $events = Event::orderBy('date', 'desc')->get();
+            $events = Event::orderBy('created_at', 'desc')->get();
+
             return response()->json(['message' => __('messages.events.fetch_success'), 'data' => $events], 200);
         } catch (\Exception $e) {
             return response()->json(['message' => __('messages.events.fetch_failure'), 'error' => $e->getMessage()], 500);
@@ -38,7 +44,6 @@ class EventController extends Controller
     public function store(Request $request)
     {
         try {
-            // Validate incoming request data
             $validated = $request->validate([
                 'title' => 'required|max:255',
                 'description' => 'required',
@@ -48,24 +53,24 @@ class EventController extends Controller
                 'category' => 'required',
             ]);
 
-            // Check for duplicate event
-            $existingEvent = Event::where('title', $validated['title'])
-                ->where('date', $validated['date'])
+            // Checking for existing events with the same date and location
+            $existingEvent = Event::where('date', $validated['date'])
                 ->where('location', $validated['location'])
                 ->first();
 
             if ($existingEvent) {
-                return response()->json([
-                    'message' => Lang::get('messages.events.duplicate_event'),
-                    // 'data' => $existingEvent
-                ], 409);
+                // checking for duplicate events
+                $message = $existingEvent->title === $validated['title']
+                    ? 'messages.events.duplicate_event'
+                    : 'messages.events.same_date_location';
+
+                return response()->json(['message' => __($message)], 409);
             }
 
-            // Create new event
             $event = Event::create($validated);
-            return response()->json(['message' => Lang::get('messages.events.create_success'), 'data' => $event], 201);
+            return response()->json(['message' => __('messages.events.create_success'), 'data' => $event], 201);
         } catch (\Exception $e) {
-            return response()->json(['message' => Lang::get('messages.events.create_failure'), 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => __('messages.events.create_failure'), 'error' => $e->getMessage()], 500);
         }
     }
 

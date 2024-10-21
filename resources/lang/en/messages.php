@@ -10,6 +10,7 @@ return [
         'update_failure' => 'Failed to update event',
         'delete_success' => 'Event deleted successfully',
         'delete_failure' => 'Failed to delete event',
-        'duplicate_event' => 'An event with the same title, date, and location already exists',
+        'duplicate_event' => 'Event is already created.',
+        'same_date_location' => 'Event overlap detected: The selected date and location are taken.',
     ],
 ];
